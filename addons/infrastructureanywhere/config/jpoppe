@@ -1,0 +1,11 @@
+dns_domain   = poppe.local
+connect      = qemu+ssh://root@sn-build002/system
+storage_type = qcow2
+storage_pool = seedbank
+git_dir      = /home/jpoppe/git
+ext_net      = default
+int_net      = internal
+overlord 	 = ['overlord001']
+seedbank 	 = overlord001
+repository   = 192.168.0.1
+use_wmctl 	 = False

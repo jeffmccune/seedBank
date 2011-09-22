@@ -1,0 +1,18 @@
+Source: seedbank
+Section: admin
+Priority: optional
+Maintainer: Jasper Poppe <jpoppe@ebay.com>
+Build-Depends: debhelper (>= 7), python-support (>= 0.6), cdbs (>= 0.4.49), python-all-dev
+Standards-Version: 3.8.4
+
+Package: seedbank
+Architecture: all
+Homepage: http://www.seedbank.org
+Depends: wget, python (>= 2.6) | python2.6, python-yaml, python-support
+Suggests: dhcp3-server, tftpd-hpa
+Description: Debian/Ubuntu netboot installation management on a good yield
+ seedbank consists of several small tools which are created to 
+ manage Debian/Ubuntu seed files on the fly so you can easily do 
+ unattended Debian/Ubuntu installations. It also manages the pxe files
+ which are used for the installation. It is very flexible and configurable
+ and provides everything what is needed.
