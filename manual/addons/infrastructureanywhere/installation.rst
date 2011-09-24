@@ -8,29 +8,52 @@ This document explains how to get IA configured so you can start rolling out you
 Preparations
 ------------
 
+If you are using Ubuntu, it is recommended to configure the following PPA's:
+https://launchpad.net/~dnjl/+archive/virtualization
+
+.. code-block:: none
+
+    sudo add-apt-repository ppa:dnjl/virtualization
+
+Then, update the system
+
+.. code-block:: none
+
+    sudo apt-get update
+    sudo apt-get dist-upgrade
+
 First off, install the required packages. See :doc:`versions` for the required version numbers. You need to be root to perform these steps.
 
 .. code-block:: none
 
-    apt-get install qemu-kvm libvirt0 libvirt-bin virt-viewer virtinst bsdtar genisoimage
+    sudo apt-get install qemu-kvm libvirt0 libvirt-bin virt-viewer virtinst bsdtar genisoimage
 
 IA assumes you're running as a normal user. For this to work, you need to add your user to the libvirt and kvm groups:
 
+On Debian:
+
 .. code-block:: none
 
-    adduser <yourusername> libvirt
-    adduser <yourusername> kvm
+    sudo adduser <yourusername> libvirt
+    sudo adduser <yourusername> kvm
+
+On Ubuntu only the kvm groups is required if you're using the installed user
+account.
+
+.. code-block:: none
+
+    sudo adduser <yourusername> kvm
 
 Next, you need to fix the permissions of the images directory of libvirt, so you can write to it as a normal user:
 
 .. code-block:: none
 
-    chown libvirt-qemu:kvm /var/lib/libvirt/images
-    chmod g+w /var/lib/libvirt/images
+    sudo chown libvirt-qemu:kvm /var/lib/libvirt/images
+    sudo chmod g+w /var/lib/libvirt/images
 
 Since the fabric version that comes with Squeeze is quite old, it misses some needed features, so you'll need to either add the unstable repositories, or install fabric through setuptools.
 
-To install fabric through the unstable repositories, perform the following steps:
+To install fabric through the unstable repositories, perform the following steps to configure the unstable repository.  (Debian Squeeze)
 
 .. code-block:: none
 
@@ -43,32 +66,54 @@ To install fabric through python' setup tools, perform the following step:
 
 .. code-block:: none
 
-    apt-get install python-setuptools
-    easy_install -U fabric
+    sudo apt-get install python-setuptools
+    sudo easy_install -U fabric
 
 Fabric uses paramiko to perform operations over ssh. Unfortunately, this breaks if you want to use ProxyCommands. To fix this, you can use paraproxy, which has (somewhat limited) support for ProxyCommands. Since paraproxy isn't packaged, you'll need to use setuptools to install it:
 
 .. code-block:: none
 
-    easy_install paraproxy
+    sudo easy_install paraproxy
 
 You'll need to patch fabric to use paraproxy. You will need to do this everytime you install and/or upgrade fabric. Modify fabric/network.py as below:
 
+Note, an easy way to find the file to patch is to use updatedb and locate:
+
 .. code-block:: none
 
-     16 try:
-     17     import warnings
-     18     warnings.simplefilter('ignore', DeprecationWarning)
-     19     import paraproxy
-     20     import paramiko as ssh
-     21 except ImportError:
-     22     try:
-     23         import warnings
-     24         warnings.simplefilter('ignore', DeprecationWarning)
-     25         import paramiko as ssh
-     26     except ImportError:
-     27         abort("paramiko is a required module. Please install it:\n\t"
-     28               "$ sudo easy_install paramiko")
+    sudo updatedb
+    locate fabric/network.py
+
+FIXME: Provide a patch
+
+.. code-block:: patch
+
+    --- fabric/network.py.orig      2011-09-24 14:49:13.278999144 -0700
+    +++ fabric/network.py   2011-09-24 14:57:15.446999223 -0700
+    @@ -17,13 +17,15 @@
+         import warnings
+         warnings.simplefilter('ignore', DeprecationWarning)
+    +    import paraproxy
+         import paramiko as ssh
+    -except ImportError, e:
+    -    print >> sys.stderr, """There was a problem importing our SSH library. Specifically:
+    -
+    -    %s
+    -
+    -Please make sure all dependencies are installed and importable.""" % e
+    -    sys.exit(1)
+    -
+    +except ImportError:
+    +    try:
+    +        import warnings
+    +        warnings.simplefilter('ignore', DeprecationWarning
+    +        import paramiko as ssh
+    +    except ImportError:
+    +        abort("paramiko is a required module. Please install it using:\n\t"
+    +              "$ sudo easy_install paramiko")
+    +        sys.exit(1)
+     
+     host_pattern = r'((?P<user>.+)@)?(?P<host>[^:]+)(:(?P<port>\d+))?'
 
 ---------------
 Configuring LVM
@@ -78,9 +123,10 @@ If you want to use LVM as a storage backend, you'll need to install lvm, togethe
 
 .. code-block:: none
 
-    apt-get install lvm2
+    sudo apt-get install lvm2
 
-Add the following to lines to your sudoers file:
+Add the following to lines to your sudoers file:  On Ubuntu, you may add these
+to /etc/sudoers.d/lvm
 
 .. code-block:: none
 
